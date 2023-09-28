@@ -3,7 +3,7 @@
 newUser="ifsc"
 ipAdrress="192.168.0.45"
 
-configuring(){
+configuring() {
     echo "Configuring" $1
 }
 
@@ -23,7 +23,7 @@ cat $keyboard | sed "s/XKBLAYOUT=.*/XKBLAYOUT=br/" >$keyboard
 
 #autologin
 configuring "autologin"
-mkdir "etc/lightdm/"
+mkdir -p "etc/lightdm/"
 lightdm="etc/lightdm/lightdm.conf"
 cat $lightdm | sed "s/autologin-user=.*/autologin-user=$newUser/" >$lightdm
 autologin="etc/systemd/system/getty@tty1.service.d/autologin.conf"
@@ -36,7 +36,9 @@ echo "LANG=en_US.UTF-8\nLANGUAGE=en_US.UTF-8\nLC_ALL=en_US.UTF-8" >etc/default/l
 
 #time zone
 configuring "time zone"
-ln -s etc/localtime /usr/share/zoneinfo/America/Sao_Paulo
+localtime="etc/localtime"
+rm $localtime
+ln -s /usr/share/zoneinfo/America/Sao_Paulo $localtime
 echo "America/Sao_Paulo" >etc/timezone
 
 #ip address
@@ -73,24 +75,27 @@ done
 
 #others configurations
 configuring "others configurations"
-ln -s etc/systemd/system/getty.target.wants/getty@tty1.service /lib/systemd/system/getty@.service
+mkdir -p "etc/systemd/system/getty.target.wants"
+ln -s "/lib/systemd/system/getty@.service" "etc/systemd/system/getty.target.wants/getty@tty1.service"
 tr -dc 'A-F0-9' </dev/urandom | head -c32 >etc/machine-id
-ln -s "var/lib/dbus/machine-id" "etc/machine-id"
+ln -s "etc/machine-id" "var/lib/dbus/machine-id"
 cp "usr/share/X11/xorg.conf.d/99-fbturbo.~" "usr/share/X11/xorg.conf.d/99-fbturbo.conf"
 randomSeed="var/lib/systemd/random-seed"
-dd if=/dev/random bs=512 count=1 > $randomSeed
+dd if=/dev/random bs=512 count=1 >$randomSeed
 chmod 300 $randomSeed
 
-touch "var/lib/systemd/timers/stamp-apt-daily.timer"
-touch "var/lib/systemd/timers/stamp-apt-daily-upgrade.timer"
-touch "var/lib/systemd/timers/stamp-e2scrub_all.timer"
-touch "var/lib/systemd/timers/stamp-fstrim.timer"
-touch "var/lib/systemd/timers/stamp-logrotate.timer"
-touch "var/lib/systemd/timers/stamp-man-db.timer"
-touch "var/lib/systemd/timesync/clock"
+timers="var/lib/systemd/timers"
+timesync="var/lib/systemd/timesync"
+mkdir -p $timers
+mkdir -p $timesync
 
-
-
+echo -n "" >>"$timers/stamp-apt-daily.timer"
+echo -n "" >>"$timers/stamp-apt-daily-upgrade.timer"
+echo -n "" >>"$timers/stamp-e2scrub_all.timer"
+echo -n "" >>"$timers/stamp-fstrim.timer"
+echo -n "" >>"$timers/stamp-logrotate.timer"
+echo -n "" >>"$timers/stamp-man-db.timer"
+echo -n "" >>"$timesync/clock"
 
 ################## unnecessary ################
 #cups configuration
@@ -102,4 +107,3 @@ touch "var/lib/systemd/timesync/clock"
 #var/log/wtmp
 #home/rpi-first-boot-wizard/
 #var/lib/plymouth/ ### screens on boot
-

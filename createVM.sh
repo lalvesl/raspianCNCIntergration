@@ -5,9 +5,7 @@
 #Global variables
 raspIso="rasp.iso"
 
-case $1 in
-
-makeIso)
+makeIso() {
   mkdir -p "dist"
   cd dist
 
@@ -38,15 +36,18 @@ makeIso)
 
   # echo "mounter/cmdline.txt"
   ls -lha mounter
+  sleep 1
+  umount --force mounter
+  echo "umounted"
+}
 
-  #sleep 1
-  #umount mounter
-  echo umounted
+case $1 in
 
+makeIso)
+  makeIso
   ;;
 
 runVM)
-  sh ./createVM.sh makeIso
   cd dist
 
   kernel="qemu-rpi-kernel"
